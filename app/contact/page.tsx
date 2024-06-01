@@ -9,7 +9,7 @@ const socials = [
 		icon: <Mail size={20} />,
 		href: "mailto:info@supasoft.com.tn",
 		label: "Email",
-		handle: "dev@supasoft.com.tn",
+		handle: "info@supasoft.com.tn",
 	},
 	{
 		icon: <Github size={20} />,
