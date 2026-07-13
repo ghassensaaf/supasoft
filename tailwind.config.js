@@ -39,8 +39,15 @@ module.exports = {
 				title: "title 3s ease-out forwards",
 				"fade-left": "fade-left 3s ease-in-out forwards",
 				"fade-right": "fade-right 3s ease-in-out forwards",
+				marquee: "marquee 40s linear infinite",
 			},
 			keyframes: {
+				// Track holds two copies of the logo list; -50% lands exactly on
+				// the seam between them, making the loop invisible.
+				marquee: {
+					from: { transform: "translateX(0)" },
+					to: { transform: "translateX(-50%)" },
+				},
 				"fade-in": {
 					"0%": {
 						opacity: "0%",
