@@ -25,7 +25,7 @@ export const FooterCta: React.FC = () => {
 				</Link>
 				{/* Swap the mailto for your scheduling link (Cal.com / Calendly) when ready */}
 				<Link
-					href="mailto:info@supasoft.com.tn"
+					href="mailto:contact@supasoft.dev"
 					className="rounded-full border border-zinc-700 px-8 py-3 text-sm font-medium text-zinc-300 duration-500 hover:border-zinc-400 hover:text-white"
 				>
 					Book a call

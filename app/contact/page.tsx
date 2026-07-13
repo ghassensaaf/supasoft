@@ -1,55 +1,37 @@
 "use client";
-import { Github, Mail } from "lucide-react";
+import { Mail } from "lucide-react";
 import Link from "next/link";
 import { Navigation } from "../components/nav";
 import { Card } from "../components/card";
-
-const socials = [
-	{
-		icon: <Mail size={20} />,
-		href: "mailto:info@supasoft.com.tn",
-		label: "Email",
-		handle: "info@supasoft.com.tn",
-	},
-	{
-		icon: <Github size={20} />,
-		href: "https://github.com/supasoft-org",
-		label: "Github",
-		handle: "supasoft-org",
-	},
-];
+import { ContactForm } from "../components/contact-form";
 
 export default function Example() {
 	return (
 		<div className="bg-gradient-to-tl from-zinc-900/0 via-zinc-900 to-zinc-900/0">
 			<Navigation />
 			<div className="container flex items-center justify-center min-h-screen px-4 mx-auto">
-				<div className="grid w-full max-w-3xl grid-cols-1 gap-8 mx-auto mt-32 sm:mt-0 sm:grid-cols-2 lg:gap-16">
-					{socials.map((s) => (
-						<Card key={s.href}>
-							<Link
-								href={s.href}
-								target="_blank"
-								className="p-4 relative flex flex-col items-center gap-4 duration-700 group md:gap-8 md:py-24 lg:pb-48 md:p-16"
-							>
-								<span
-									className="absolute w-px h-2/3 bg-gradient-to-b from-zinc-500 via-zinc-500/50 to-transparent"
-									aria-hidden="true"
-								/>
-								<span className="relative z-10 flex items-center justify-center w-12 h-12 text-sm duration-1000 border rounded-full text-zinc-200 group-hover:text-white group-hover:bg-zinc-900 border-zinc-500 bg-zinc-900 group-hover:border-zinc-200 drop-shadow-orange">
-									{s.icon}
-								</span>{" "}
-								<div className="z-10 flex flex-col items-center">
-									<span className="lg:text-xl font-medium duration-150 xl:text-3xl text-zinc-200 group-hover:text-white font-display">
-										{s.handle}
-									</span>
-									<span className="mt-4 text-sm text-center duration-1000 text-zinc-400 group-hover:text-zinc-200">
-										{s.label}
-									</span>
-								</div>
-							</Link>
-						</Card>
-					))}
+				<div className="flex w-full max-w-2xl flex-col gap-8 mx-auto mt-32 sm:mt-0 py-16">
+					<div className="flex flex-col items-center gap-4 text-center">
+						<h1 className="text-3xl font-display text-zinc-100 sm:text-4xl">
+							Get in touch
+						</h1>
+						<p className="max-w-md text-sm text-zinc-400">
+							Tell us about your project and we'll get back to you within one
+							business day.
+						</p>
+					</div>
+					<Card>
+						<div className="p-6 sm:p-10">
+							<ContactForm />
+						</div>
+					</Card>
+					<Link
+						href="mailto:contact@supasoft.dev"
+						className="group mx-auto flex items-center gap-2 text-sm text-zinc-500 duration-500 hover:text-zinc-200"
+					>
+						<Mail size={16} />
+						<span>Or email us directly — contact@supasoft.dev</span>
+					</Link>
 				</div>
 			</div>
 		</div>

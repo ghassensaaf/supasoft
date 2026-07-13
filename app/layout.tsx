@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     title: "Supasoft",
     description:
       "IT consulting company",
-    url: "https://supasoft.com.tn",
+    url: "https://supasoft.dev",
     siteName: "Supasoft",
     locale: "en-US",
     type: "website",
