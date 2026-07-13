@@ -2,8 +2,28 @@ import React from "react";
 import { Marquee } from "./marquee";
 import { TechLogo, techLogos } from "./tech-logos";
 
-const rowOne = techLogos.slice(0, 8);
-const rowTwo = techLogos.slice(8);
+// One marquee row per category (AI, languages & frameworks, data &
+// backend, cloud & devops), in the order the data file defines them.
+// Categories only decide the grouping — they are never rendered.
+const rows = techLogos.reduce<TechLogo[][]>((acc, tech) => {
+	const row = acc.find((r) => r[0].category === tech.category);
+	if (row) {
+		row.push(tech);
+	} else {
+		acc.push([tech]);
+	}
+	return acc;
+}, []);
+
+// A seamless loop needs a reasonably wide track; repeat short rows
+// until they hold at least 8 items.
+const filled = rows.map((row) => {
+	const items: TechLogo[] = [];
+	while (items.length < 8) {
+		items.push(...row);
+	}
+	return items;
+});
 
 const TechItem: React.FC<{ tech: TechLogo }> = ({ tech }) => (
 	<span className="mx-8 flex items-center gap-3 whitespace-nowrap text-zinc-500 duration-500 hover:text-zinc-200 sm:mx-10">
@@ -23,9 +43,9 @@ const TechItem: React.FC<{ tech: TechLogo }> = ({ tech }) => (
 );
 
 /**
- * Technology partners as a two-row carousel matching the clients marquee.
- * The rows drift in opposite directions at slightly different speeds,
- * which reads as depth rather than a single repeating band.
+ * Technology partners as stacked carousels matching the clients marquee.
+ * Adjacent rows drift in opposite directions at slightly different
+ * speeds, which reads as depth rather than a single repeating band.
  */
 export const TechMarquee: React.FC = () => {
 	return (
@@ -39,17 +59,18 @@ export const TechMarquee: React.FC = () => {
 					scale with you.
 				</p>
 			</div>
-			<div className="flex w-full flex-col gap-10">
-				<Marquee duration={45}>
-					{rowOne.map((tech) => (
-						<TechItem key={tech.name} tech={tech} />
-					))}
-				</Marquee>
-				<Marquee duration={38} reverse>
-					{rowTwo.map((tech) => (
-						<TechItem key={tech.name} tech={tech} />
-					))}
-				</Marquee>
+			<div className="flex w-full flex-col gap-8 sm:gap-10">
+				{filled.map((items, rowIndex) => (
+					<Marquee
+						key={items[0].category}
+						reverse={rowIndex % 2 === 1}
+						duration={55 + rowIndex * 7}
+					>
+						{items.map((tech, i) => (
+							<TechItem key={`${tech.name}-${i}`} tech={tech} />
+						))}
+					</Marquee>
+				))}
 			</div>
 		</div>
 	);
