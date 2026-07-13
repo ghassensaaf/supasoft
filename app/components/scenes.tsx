@@ -1,13 +1,20 @@
 "use client";
 import {
 	MotionValue,
+	animate,
 	motion,
 	useMotionValueEvent,
 	useReducedMotion,
 	useScroll,
+	useSpring,
 	useTransform,
 } from "framer-motion";
-import React, { PropsWithChildren, useRef, useState } from "react";
+import React, {
+	PropsWithChildren,
+	useEffect,
+	useRef,
+	useState,
+} from "react";
 
 /**
  * Scene-based scroll presentation.
@@ -38,12 +45,99 @@ export const ScrollScenes: React.FC<PropsWithChildren> = ({ children }) => {
 		offset: ["start start", "end end"],
 	});
 
+	// The scene transforms follow a spring-smoothed copy of the scroll
+	// progress, so discrete wheel ticks render as fluid, inertial motion
+	// instead of visible steps. Raw progress still drives the snap logic
+	// and active-scene tracking, which need the real scroll position.
+	const smoothProgress = useSpring(scrollYProgress, {
+		stiffness: 100,
+		damping: 30,
+		restDelta: 0.001,
+	});
+
 	// Only the active scene may receive pointer events (buttons, marquee
 	// hover-pause); inactive scenes are invisible and inert.
 	const [active, setActive] = useState(0);
+
+	// Scene snapping: while the user scrolls, everything stays scrubbed;
+	// when input goes quiet mid-transition, glide to a scene's dwell point
+	// so the page always settles on a fully visible scene.
+	//
+	// The snap is direction-aware rather than nearest-wins: scrolling
+	// forward commits to the next scene once the transition is ~18%
+	// underway (and symmetrically when scrolling back), so a gentle wheel
+	// flick is enough to advance — you never get pulled back to the scene
+	// you just left.
+	const SNAP_COMMIT = 0.18;
+	const prefersReducedMotion = useReducedMotion();
+	const settleTimer = useRef<ReturnType<typeof setTimeout>>();
+	const snapAnimation = useRef<ReturnType<typeof animate> | null>(null);
+	const snapping = useRef(false);
+	const lastProgress = useRef(0);
+	const direction = useRef(0);
+
 	useMotionValueEvent(scrollYProgress, "change", (v) => {
 		setActive(Math.min(count - 1, Math.max(0, Math.round(v * (count - 1)))));
+
+		if (snapping.current) return; // our own glide is driving the scroll
+		if (v !== lastProgress.current) {
+			direction.current = v > lastProgress.current ? 1 : -1;
+			lastProgress.current = v;
+		}
+		clearTimeout(settleTimer.current);
+		settleTimer.current = setTimeout(() => {
+			const el = ref.current;
+			if (!el) return;
+			// Position in scene units: 1.3 = 30% through the 1 -> 2 transition.
+			const pos = v * (count - 1);
+			const base = Math.floor(pos);
+			const frac = pos - base;
+			let index: number;
+			if (direction.current > 0) {
+				index = frac > SNAP_COMMIT ? base + 1 : base;
+			} else if (direction.current < 0) {
+				index = frac < 1 - SNAP_COMMIT ? base : base + 1;
+			} else {
+				index = Math.round(pos);
+			}
+			index = Math.min(count - 1, Math.max(0, index));
+			const target = index / (count - 1);
+			if (Math.abs(v - target) < 0.004) return; // already on a scene
+			const scrollable = el.offsetHeight - window.innerHeight;
+			const targetY = el.offsetTop + target * scrollable;
+			if (prefersReducedMotion) {
+				window.scrollTo(0, targetY);
+				return;
+			}
+			snapping.current = true;
+			snapAnimation.current = animate(window.scrollY, targetY, {
+				type: "tween",
+				duration: 0.7,
+				ease: [0.32, 0.72, 0, 1],
+				onUpdate: (y) => window.scrollTo(0, y),
+				onComplete: () => {
+					snapping.current = false;
+				},
+				onStop: () => {
+					snapping.current = false;
+				},
+			});
+		}, 150);
 	});
+
+	// Any fresh user input takes control back from an in-flight glide.
+	useEffect(() => {
+		const cancel = () => snapAnimation.current?.stop();
+		window.addEventListener("wheel", cancel, { passive: true });
+		window.addEventListener("touchstart", cancel, { passive: true });
+		window.addEventListener("mousedown", cancel, { passive: true });
+		return () => {
+			window.removeEventListener("wheel", cancel);
+			window.removeEventListener("touchstart", cancel);
+			window.removeEventListener("mousedown", cancel);
+			clearTimeout(settleTimer.current);
+		};
+	}, []);
 
 	// 150vh of runway per scene: generous dwell time plus slow, readable
 	// transitions between scenes.
@@ -56,7 +150,7 @@ export const ScrollScenes: React.FC<PropsWithChildren> = ({ children }) => {
 						key={i}
 						index={i}
 						count={count}
-						progress={scrollYProgress}
+						progress={prefersReducedMotion ? scrollYProgress : smoothProgress}
 						active={active === i}
 					>
 						{child}
