@@ -4,6 +4,7 @@ import { Hero } from "./components/hero";
 import { LogoMarquee } from "./components/logo-marquee";
 import { TechMarquee } from "./components/tech-marquee";
 import { FooterCta } from "./components/cta";
+import { UpworkScene } from "./components/upwork-scene";
 import { ScrollScenes } from "./components/scenes";
 
 export default function Home() {
@@ -29,6 +30,7 @@ export default function Home() {
         <Hero />
         <LogoMarquee />
         <TechMarquee />
+        <UpworkScene />
         <FooterCta />
       </ScrollScenes>
     </main>
